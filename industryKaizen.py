@@ -28,7 +28,7 @@ def get_kaizen_response(user_input):
     else:
         return "🤖 I'm sorry, I couldn't understand that. Please ask a Kaizen-related question."
 
-# Step 5: Create chatbot interface with ipywidgets
+# Step 5: Create chatbot interface with ipywidgets (using observe instead of on_submit)
 def chatbot_widget():
     text_input = widgets.Text(
         value='',
@@ -38,18 +38,22 @@ def chatbot_widget():
     )
 
     output = widgets.Output()
+    display(text_input, output)
 
-    def handle_submit(sender):
-        user_query = text_input.value.strip()
+    # Ensure the widget does not trigger multiple times while typing
+    text_input.continuous_update = False
+
+    def handle_submit(change):
+        user_query = change['new'].strip()
         if user_query:
             response = get_kaizen_response(user_query)
             with output:
                 print(f"\n👨‍🏭 You: {user_query}")
                 print(f"🤖 IndustryKaizen: {response}\n")
-            text_input.value = ''  # Clear input after submit
+            text_input.value = ''  # Clear input
 
-    text_input.on_submit(handle_submit)
-    display(text_input, output)
+    # Attach the observer
+    text_input.observe(handle_submit, names='value')
 
 # Step 6: Run chatbot
 chatbot_widget()
