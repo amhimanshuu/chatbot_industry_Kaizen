@@ -1,8 +1,7 @@
+import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import ipywidgets as widgets
-from IPython.display import display
 import re
 
 # Step 1: Load CSV without headers and assign custom column names
@@ -28,32 +27,27 @@ def get_kaizen_response(user_input):
     else:
         return "🤖 I'm sorry, I couldn't understand that. Please ask a Kaizen-related question."
 
-# Step 5: Create chatbot interface with ipywidgets (using observe instead of on_submit)
-def chatbot_widget():
-    text_input = widgets.Text(
-        value='',
-        placeholder='Type your question related to Kaizen...',
-        description='👨‍🏭 You:',
-        layout=widgets.Layout(width='100%')
-    )
+# Step 5: Build Streamlit UI (replicating the chatbot experience)
+st.set_page_config(page_title="IndustryKaizen Chatbot", layout="centered")
+st.title("🤖 IndustryKaizen Chatbot")
+st.markdown("Ask your Kaizen-related question below:")
 
-    output = widgets.Output()
-    display(text_input, output)
+# Persistent chat history
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-    # Ensure the widget does not trigger multiple times while typing
-    text_input.continuous_update = False
+# Text input from user
+user_query = st.text_input("👨‍🏭 You:", placeholder="Type your Kaizen-related question and press Enter")
 
-    def handle_submit(change):
-        user_query = change['new'].strip()
-        if user_query:
-            response = get_kaizen_response(user_query)
-            with output:
-                print(f"\n👨‍🏭 You: {user_query}")
-                print(f"🤖 IndustryKaizen: {response}\n")
-            text_input.value = ''  # Clear input
+# If the user entered a query
+if user_query:
+    response = get_kaizen_response(user_query)
+    st.session_state.history.append(("👨‍🏭 You", user_query))
+    st.session_state.history.append(("🤖 IndustryKaizen", response))
 
-    # Attach the observer
-    text_input.observe(handle_submit, names='value')
-
-# Step 6: Run chatbot
-chatbot_widget()
+# Display full conversation history
+for sender, message in st.session_state.history:
+    if sender == "👨‍🏭 You":
+        st.markdown(f"**{sender}:** {message}")
+    else:
+        st.success(f"{sender}: {message}")
